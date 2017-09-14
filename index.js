@@ -11,7 +11,8 @@ var fs = require('fs'),
 	open = require('opn'),
 	es = require("event-stream"),
 	os = require('os'),
-	chokidar = require('chokidar');
+	chokidar = require('chokidar'),
+	formBody = require("body/form");
 require('colors');
 
 var INJECTED_CODE = fs.readFileSync(path.join(__dirname, "injected.html"), "utf8");
@@ -30,6 +31,20 @@ function escape(html){
 		.replace(/"/g, '&quot;');
 }
 
+function handlePost(req, res) {
+	formBody(req, {}, function(err, body) {
+		if (err) {
+			console.warn(err.stack);
+		}
+		else {
+			console.info('body', JSON.stringify(body, null, 2));
+		}
+		res.statusCode = 301;
+		res.setHeader('Location', req.headers.referer);
+		return res.end();
+	});
+}
+
 // Based on connect.static(), but streamlined and with added code injecter
 function staticServer(root) {
 	var isFile = false;
@@ -39,6 +54,9 @@ function staticServer(root) {
 		if (e.code !== "ENOENT") throw e;
 	}
 	return function(req, res, next) {
+		if (req.method === "POST") {
+			return handlePost(req, res);
+		}
 		if (req.method !== "GET" && req.method !== "HEAD") return next();
 		var reqpath = isFile ? "" : url.parse(req.url).pathname;
 		var hasNoOrigin = !req.headers.origin;

@@ -12,6 +12,7 @@
   ],
   "author": "Tapio Vierros",
   "dependencies": {
+    "body": "^5.1.0",
     "chokidar": "^1.6.0",
     "colors": "latest",
     "connect": "3.5.x",
